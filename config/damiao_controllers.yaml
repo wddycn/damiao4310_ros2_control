@@ -1,0 +1,20 @@
+# 控制器管理器参数
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    # 控制器列表
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    joint_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+# 位置控制器参数（必须在根命名空间，与控制器名一致）
+joint_position_controller:
+  ros__parameters:
+    joints: ["motor1_joint"]  # 必须是列表，不能省略引号
+    interface_name: position
+    pid:
+      motor1_joint:  # 显式指定每个关节的PID（关键修复！）
+        p: 1.0
+        i: 0.0
+        d: 0.0

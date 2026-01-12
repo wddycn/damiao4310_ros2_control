@@ -1,0 +1,7 @@
+<library path="damiao_ros2_control">
+  <class name="damiao_ros2_control/DamiaoSystem"
+         type="damiao_ros2_control::DamiaoSystem"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>达妙电机 ros2_control 硬件接口</description>
+  </class>
+</library>
