@@ -108,8 +108,17 @@ hardware_interface::CallbackReturn DamiaoSystem::on_activate(
   dm_control_ = std::make_shared<damiao::Motor_Control>(serial_ptr_);
   dm_control_->addMotor(motor1_.get());  // 传递电机指针
 
-  // 3. 切换控制模式到 POS_VEL_MODE 并使能电机
+  // 3. 先读取电机当前物理位置（关键！覆盖默认0值）
   sleep(1);  // 等待串口稳定
+  dm_control_->refresh_motor_status(*motor1_);  // 刷新电机状态
+  double current_motor_pos = motor1_->Get_Position();  // 读取电机当前位置（弧度）
+  RCLCPP_INFO(logger_, "电机当前物理位置：%.4f rad", current_motor_pos);
+
+  // 4. 覆盖指令变量的默认0值！让控制器认为目标位置=当前位置
+  motor_command_[0].position = current_motor_pos;
+  motor_state_[0].position = current_motor_pos;  // 状态也同步
+
+  // 5. 切换控制模式+使能（只上电，不下发位置指令）
   if (dm_control_->switchControlMode(*motor1_, damiao::POS_VEL_MODE))
   {
     RCLCPP_INFO(logger_, "切换到 POS_VEL_MODE 成功");
@@ -121,12 +130,13 @@ hardware_interface::CallbackReturn DamiaoSystem::on_activate(
   }
 
   dm_control_->save_motor_param(*motor1_);
-  dm_control_->enable(*motor1_);
+  dm_control_->enable(*motor1_);  // 只使能，不移动
   sleep(1);
 
-  RCLCPP_INFO(logger_, "电机硬件激活成功！");
+  RCLCPP_INFO(logger_, "电机硬件激活成功，保持当前位置！");
   return CallbackReturn::SUCCESS;
 }
+
 
 // 停止硬件（失能电机、关闭串口）
 hardware_interface::CallbackReturn DamiaoSystem::on_deactivate(
